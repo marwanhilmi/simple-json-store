@@ -1,103 +1,93 @@
-# configstore [![Build Status](https://secure.travis-ci.org/yeoman/configstore.svg?branch=master)](http://travis-ci.org/yeoman/configstore)
-
-> Easily load and persist config without having to think about where and how
-
-Config is stored in a JSON file located in `$XDG_CONFIG_HOME` or `~/.config`.  
-Example: `~/.config/configstore/some-id.json`
-
+# Simple JSON Store
+> Easily load and save data to JSON file  
+> Works **synchronously** so use as appropriate (CLI applications, simple writes)
 
 ## Usage
 
 ```js
-const Configstore = require('configstore');
-const pkg = require('./package.json');
+const SimpleJsonStore = require('simple-json-store')
 
-// Init a Configstore instance with an unique ID e.g.
-// package name and optionally some default values
-const conf = new Configstore(pkg.name, {foo: 'bar'});
+// Init a SimpleJsonStore instance with a file path
+// and optionally some default values
+const store = new JsonStore('./mystore.json', {foo: 'bar'});
 
-conf.set('awesome', true);
+store.set('awesome', true);
 
-console.log(conf.get('awesome'));
+console.log(store.get('awesome'));
 //=> true
 
-console.log(conf.get('foo'));
+console.log(store.get('foo'));
 //=> bar
 
-conf.del('awesome');
+store.del('awesome');
 
-console.log(conf.get('awesome'));
+console.log(store.get('awesome'));
 //=> undefined
 ```
 
 
 ## API
 
-### Configstore(packageName, [defaults], [options])
+### SimpleJsonStore(filePath, [defaults])
 
-Create a new Configstore instance `config`.
+Create a new JsonStore instance `store`.
 
-#### packageName
+#### filePath
 
 Type: `string`
 
-Name of your package.
+File path to save JSON file to.
 
 #### defaults
 
 Type: `object`
 
-Default content to init the config store with.
+Default content to init the store with.
 
-#### options
-
-Type: `object`
-
-##### globalConfigPath
-
-Type: `boolean`  
-Default: `false`
-
-Store the config at `$CONFIG/package-name/config.json` instead of the default `$CONFIG/configstore/package-name.json`. This is not recommended as you might end up conflicting with other tools, rendering the "without having to think" idea moot.
-
-### config.set(key, value)
+### store.set(key, value)
 
 Set an item.
 
-### config.set(object)
+### store.set(object)
 
 Set multiple items at once.
 
-### config.get(key)
+### store.get(key)
 
 Get an item.
 
-### config.del(key)
+### store.del(key)
 
 Delete an item.
 
-### config.clear()
+### store.clear()
 
 Delete all items.
 
-### config.all
+### store.all
 
 Get all items as an object or replace the current config with an object:
 
 ```js
-conf.all = {
+store.all = {
 	hello: 'world'
 };
 ```
 
-### config.size
+### store.size
 
 Get the item count.
 
-### config.path
+### store.path
 
-Get the path to the config file. Can be used to show the user where the config file is located or even better open it for them.
+Get the path to the JSON file. Can be used to show the user where the file is located or even better open it for them.
 
+## Related
+
+- [configstore](https://github.com/yeoman/configstore) - same thing but automatically sets up JSON save file for you
+- [lowdb](https://github.com/typicode/lowdb/blob/master/src/index.js) - simple JSON database with query capabilities
+- [write-json-file](https://github.com/sindresorhus/write-json-file) - write JSON files atomically (async or sync)
+- [steno](https://github.com/typicode/steno) - another option to write JSON files atomically
 
 ## License
 

@@ -1,72 +1,67 @@
 /* eslint-env mocha */
-'use strict';
-var assert = require('assert');
-var fs = require('fs');
-var pathExists = require('path-exists');
-var Configstore = require('./');
-var configstorePath = new Configstore('configstore-test').path;
+'use strict'
+var assert = require('assert')
+var fs = require('fs')
+var pathExists = require('path-exists')
+var tempfile = require('tempfile')
+var JsonStore = require('./')
+var jsonStorePath = new JsonStore(tempfile('.json')).path
 
 beforeEach(function () {
-	fs.unlinkSync(configstorePath);
-	this.conf = new Configstore('configstore-test');
-});
+	fs.unlinkSync(jsonStorePath)
+	this.store = new JsonStore(jsonStorePath)
+})
 
 it('.set() and .get()', function () {
-	this.conf.set('foo', 'bar');
-	assert.equal(this.conf.get('foo'), 'bar');
-});
+	this.store.set('foo', 'bar')
+	assert.equal(this.store.get('foo'), 'bar')
+})
 
 it('.set() with object and .get()', function () {
-	this.conf.set({
+	this.store.set({
 		foo1: 'bar1',
 		foo2: 'bar2'
-	});
-	assert.equal(this.conf.get('foo1'), 'bar1');
-	assert.equal(this.conf.get('foo2'), 'bar2');
-});
+	})
+	assert.equal(this.store.get('foo1'), 'bar1')
+	assert.equal(this.store.get('foo2'), 'bar2')
+})
 
 it('.del()', function () {
-	this.conf.set('foo', 'bar');
-	this.conf.del('foo');
-	assert.notEqual(this.conf.get('foo'), 'bar');
-});
+	this.store.set('foo', 'bar')
+	this.store.del('foo')
+	assert.notEqual(this.store.get('foo'), 'bar')
+})
 
 it('.clear()', function () {
-	this.conf.set('foo', 'bar');
-	this.conf.set('foo1', 'bar1');
-	this.conf.clear();
-	assert.equal(this.conf.size, 0);
-});
+	this.store.set('foo', 'bar')
+	this.store.set('foo1', 'bar1')
+	this.store.clear()
+	assert.equal(this.store.size, 0)
+})
 
 it('.all', function () {
-	this.conf.set('foo', 'bar');
-	assert.equal(this.conf.all.foo, 'bar');
-});
+	this.store.set('foo', 'bar')
+	assert.equal(this.store.all.foo, 'bar')
+})
 
 it('.size', function () {
-	this.conf.set('foo', 'bar');
-	assert.equal(this.conf.size, 1);
-});
+	this.store.set('foo', 'bar')
+	assert.equal(this.store.size, 1)
+})
 
 it('.path', function () {
-	this.conf.set('foo', 'bar');
-	assert(pathExists.sync(this.conf.path));
-});
+	this.store.set('foo', 'bar')
+	assert(pathExists.sync(this.store.path))
+})
 
 it('should use default value', function () {
-	var conf = new Configstore('configstore-test', {foo: 'bar'});
-	assert.equal(conf.get('foo'), 'bar');
-});
-
-it('support global namespace path option', function () {
-	var conf = new Configstore('configstore-test', {}, {globalConfigPath: true});
-	var regex = /configstore-test(\/|\\)config.json$/;
-	assert(regex.test(conf.path));
-});
+	var conf = new JsonStore(jsonStorePath, {foo: 'bar'})
+	assert.equal(conf.get('foo'), 'bar')
+})
 
 it('make sure `.all` is always an object', function () {
-	fs.unlinkSync(configstorePath);
+	fs.unlinkSync(jsonStorePath)
 	assert.doesNotThrow(function () {
-		this.conf.get('foo');
-	}.bind(this));
-});
+		this.store.get('foo')
+	}.bind(this))
+})

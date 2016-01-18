@@ -1,106 +1,93 @@
-'use strict';
-var path = require('path');
-var fs = require('graceful-fs');
-var osenv = require('osenv');
-var assign = require('object-assign');
-var mkdirp = require('mkdirp');
-var uuid = require('uuid');
-var xdgBasedir = require('xdg-basedir');
-var osTmpdir = require('os-tmpdir');
-var writeFileAtomic = require('write-file-atomic');
+'use strict'
+var path = require('path')
+var fs = require('graceful-fs')
+var assign = require('object-assign')
+var mkdirp = require('mkdirp')
+var writeFileAtomic = require('write-file-atomic')
 
-var user = (osenv.user() || uuid.v4()).replace(/\\/g, '');
-var configDir = xdgBasedir.config || path.join(osTmpdir(), user, '.config');
-var permissionError = 'You don\'t have access to this file.';
-var defaultPathMode = parseInt('0700', 8);
-var writeFileOptions = {mode: parseInt('0600', 8)};
+var permissionError = 'You don\'t have access to this file.'
+var defaultPathMode = parseInt('0700', 8)
+var writeFileOptions = {mode: parseInt('0600', 8)}
 
-function Configstore(id, defaults, opts) {
-	opts = opts || {};
-
-	var pathPrefix = opts.globalConfigPath ?
-		path.join(id, 'config.json') :
-		path.join('configstore', id + '.json');
-
-	this.path = path.join(configDir, pathPrefix);
-
-	this.all = assign({}, defaults || {}, this.all || {});
+function SimpleJsonStore(filePath, defaults) {
+	this.path = path.resolve(filePath)
+	this.all = assign({}, defaults || {}, this.all || {})
 }
 
-Configstore.prototype = Object.create(Object.prototype, {
+SimpleJsonStore.prototype = Object.create(Object.prototype, {
 	all: {
 		get: function () {
 			try {
-				return JSON.parse(fs.readFileSync(this.path, 'utf8'));
+				return JSON.parse(fs.readFileSync(this.path, 'utf8'))
 			} catch (err) {
 				// create dir if it doesn't exist
 				if (err.code === 'ENOENT') {
-					mkdirp.sync(path.dirname(this.path), defaultPathMode);
-					return {};
+					mkdirp.sync(path.dirname(this.path), defaultPathMode)
+					return {}
 				}
 
 				// improve the message of permission errors
 				if (err.code === 'EACCES') {
-					err.message = err.message + '\n' + permissionError + '\n';
+					err.message = err.message + '\n' + permissionError + '\n'
 				}
 
 				// empty the file if it encounters invalid JSON
 				if (err.name === 'SyntaxError') {
-					writeFileAtomic.sync(this.path, '', writeFileOptions);
-					return {};
+					writeFileAtomic.sync(this.path, '', writeFileOptions)
+					return {}
 				}
 
-				throw err;
+				throw err
 			}
 		},
 		set: function (val) {
 			try {
 				// make sure the folder exists as it
 				// could have been deleted in the meantime
-				mkdirp.sync(path.dirname(this.path), defaultPathMode);
+				mkdirp.sync(path.dirname(this.path), defaultPathMode)
 
-				writeFileAtomic.sync(this.path, JSON.stringify(val, null, '\t'), writeFileOptions);
+				writeFileAtomic.sync(this.path, JSON.stringify(val, null, '\t'), writeFileOptions)
 			} catch (err) {
 				// improve the message of permission errors
 				if (err.code === 'EACCES') {
-					err.message = err.message + '\n' + permissionError + '\n';
+					err.message = err.message + '\n' + permissionError + '\n'
 				}
 
-				throw err;
+				throw err
 			}
 		}
 	},
 	size: {
 		get: function () {
-			return Object.keys(this.all || {}).length;
+			return Object.keys(this.all || {}).length
 		}
 	}
-});
+})
 
-Configstore.prototype.get = function (key) {
-	return this.all[key];
-};
+SimpleJsonStore.prototype.get = function (key) {
+	return this.all[key]
+}
 
-Configstore.prototype.set = function (key, val) {
-	var config = this.all;
+SimpleJsonStore.prototype.set = function (key, val) {
+	var config = this.all
 	if (arguments.length === 1) {
 		Object.keys(key).forEach(function (k) {
-			config[k] = key[k];
-		});
+			config[k] = key[k]
+		})
 	} else {
-		config[key] = val;
+		config[key] = val
 	}
-	this.all = config;
-};
+	this.all = config
+}
 
-Configstore.prototype.del = function (key) {
-	var config = this.all;
-	delete config[key];
-	this.all = config;
-};
+SimpleJsonStore.prototype.del = function (key) {
+	var config = this.all
+	delete config[key]
+	this.all = config
+}
 
-Configstore.prototype.clear = function () {
-	this.all = {};
-};
+SimpleJsonStore.prototype.clear = function () {
+	this.all = {}
+}
 
-module.exports = Configstore;
+module.exports = SimpleJsonStore
