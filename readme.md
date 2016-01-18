@@ -9,7 +9,7 @@ const SimpleJsonStore = require('simple-json-store')
 
 // Init a SimpleJsonStore instance with a file path
 // and optionally some default values
-const store = new JsonStore('./mystore.json', {foo: 'bar'});
+const store = new SimpleJsonStore('./mystore.json', {foo: 'bar'});
 
 store.set('awesome', true);
 
